@@ -1,0 +1,33 @@
+version: '3'
+services:
+  app:
+    build:  
+      context: .
+      dockerfile: Dockerfile 
+
+    container_name: django
+    restart: always
+    ports:
+      - "8000:8000"    
+    volumes:
+      - .:/srv/test
+      - ./log:/var/log/docker
+    command: 
+      gunicorn --workers=2 --bind 0.0.0.0:8000 docker.wsgi:application
+      
+    expose: 
+      - "8000"
+
+  nginx:
+    container_name: nginx
+    build: 
+      context: ./nginx
+      dockerfile: Dockerfile 
+    restart: always
+    volumes:
+      - .:/srv/test
+      - ./nginx:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+    depends_on:
+      - app
