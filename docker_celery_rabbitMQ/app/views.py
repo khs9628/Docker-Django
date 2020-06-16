@@ -12,3 +12,4 @@ def home(reqeust):
 
 def print_celery(reqeust):
     print_hello.delay()
+    return HttpResponse("Hello, world. Celery_RabbitMQ_Clear")

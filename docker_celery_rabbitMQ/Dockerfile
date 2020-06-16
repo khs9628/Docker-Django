@@ -2,7 +2,7 @@ FROM python:3.7
 
 RUN apt-get -y update
 
-RUN mkdir /srv/test
+RUN mkdir /srv/celery
 COPY requirements.txt /srv/celery/
 
 WORKDIR /srv/celery

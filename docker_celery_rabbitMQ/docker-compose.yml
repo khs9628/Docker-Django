@@ -46,6 +46,8 @@ services:
     build: .
     volumes:
       - .:/srv/celery
+    environment:
+      - C_FORCE_ROOT=true
     command: 
       celery -A docker worker -l info
     links:

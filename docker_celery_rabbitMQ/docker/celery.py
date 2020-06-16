@@ -10,7 +10,7 @@ from django.conf import settings
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'docker.settings')
 
-app = Celery('docker', broker='amqp://admin:1234@localhost:5672//')
+app = Celery('docker', broker='amqp://admin:1234@rabbit:5672//')
 
 # v4.0 이상 일 경우
 app.config_from_object('django.conf:settings', namespace='CELERY')
