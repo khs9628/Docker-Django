@@ -29,14 +29,9 @@ app.conf.update(
     CELERY_TIMEZONE='Asia/Seoul',
     CELERY_ENABLE_UTC=False,
     CELERYBEAT_SCHEDULE = {
-        'Insight_DB_update': {
-            "task": "Plugin.tasks.DB_update",
-            'schedule': crontab(minute=0, hour=3),
-            'args': ()
-        },
-        'Inspect_update': {
-            "task": "Plugin.tasks.inspect_update",
-            'schedule': crontab(minute=0, hour=4),
+        'say_hello': {
+            "task": "app.tasks.print_hello",
+            'schedule': crontab(minute=0, hour=5),
             'args': ()
         },
     }
