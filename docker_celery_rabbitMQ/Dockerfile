@@ -1,13 +1,12 @@
 FROM python:3.7 
 
 RUN apt-get -y update
+RUN mkdir /srv/plugin
+COPY requirements.txt /srv/plugin/
 
-RUN mkdir /srv/celery
-COPY requirements.txt /srv/celery/
-
-WORKDIR /srv/celery
+WORKDIR /srv/plugin
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-COPY . /srv/celery/
+COPY . /srv/plugin/

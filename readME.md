@@ -127,3 +127,123 @@ $ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 $ docker-compose -version 
 
 ```
+
+
+### docker Log 관리
+
+Docker는 /var/lib/docker 에서 이미지파일 / 컨테이너정보 / 로그 등을 관리합니다.
+
+
+```
+$ cd /var/lib/docker 
+$ ls
+
+builder   containers  network	plugins   swarm  trust
+buildkit  image       overlay2	runtimes  tmp	 volumes
+
+$ cd containers
+$ ls
+
+454880959eaa231321eb71ff55189272696d74aa83fa0e82088a1726bd8616a4
+51484c4f637b7cb779208ae7ad111ce90ea8f9f1591ee39333fde0e8fac3add1
+814c65bb7700aad8b7b79421b2cec8e3929c973930d8b825db3d5bdbe4df5e97
+83adee6dd24cf36752760c9654a9f3668de772ad42ff99cba636f36c49ff0ef4
+ec50acb94e90f738c2fb85bf0782d64b5305c963819c4326529ca2b0b8142881
+
+$ cd [container_ID]
+$ ls
+
+51484c4f637b7cb779208ae7ad111ce90ea8f9f1591ee39333fde0e8fac3add1-json.log
+checkpoints
+config.v2.json
+hostconfig.json
+hostname
+hosts
+mounts
+resolv.conf
+resolv.conf.hash
+
+# 컨테이너 사용 용량 확인
+$ cd ..
+$ du -hsx * | sort -sh | head -n 10
+48K	83adee6dd24cf36752760c9654a9f3668de772ad42ff99cba636f36c49ff0ef4
+48K	ec50acb94e90f738c2fb85bf0782d64b5305c963819c4326529ca2b0b8142881
+68K	454880959eaa231321eb71ff55189272696d74aa83fa0e82088a1726bd8616a4
+88K	814c65bb7700aad8b7b79421b2cec8e3929c973930d8b825db3d5bdbe4df5e97
+112K	51484c4f637b7cb779208ae7ad111ce90ea8f9f1591ee39333fde0e8fac3add1
+
+
+```
+
+각 컨테이너에 발생한 log들은 [container_ID].log로 관리됩니다.
+
+
+`logrotate` ?
+
+
+```
+
+$ sudo apt install -y logrotate
+
+$ vim /etc/logrotate.conf
+
+# see "man logrotate" for details
+# rotate log files weekly
+weekly
+
+# use the syslog group by default, since this is the owning group
+# of /var/log/syslog.
+su root syslog
+
+# keep 4 weeks worth of backlogs
+rotate 4
+
+# create new (empty) log files after rotating old ones
+create
+
+# uncomment this if you want your log files compressed
+#compress
+
+# packages drop log rotation information into this directory
+include /etc/logrotate.d
+
+# no packages own wtmp, or btmp -- we'll rotate them here
+/var/log/wtmp {
+    missingok
+    monthly
+    create 0664 root utmp
+    rotate 1
+}
+
+/var/log/btmp {
+    missingok
+    monthly
+    create 0660 root utmp
+    rotate 1
+}
+
+# system-specific logs may be configured here
+
+
+
+# docker log 관리 설정파일 만들기
+$ vim /etc/logrotate.d/docker
+/var/lib/docker/containers/*/*.log {
+    rotate 7
+    daily
+    compress
+    missingok
+    delaycompress
+    copytruncate
+}
+
+위의 명령어를 해석하면 다음과 같다
+
+- rotate: 회전주기 설정
+- daily: 일단위 실행 의미
+- missingok: 설정로그가 없는 경우 에러메세지 출력하지 않음
+- compress: 압축(원하지 않으면 nocompress 로 설정)
+- copytruncate: 대상이 되는 파일을 찾은 다음 설정에 맞게 날짜나 숫자를 붙여 rename
+
+$ logrotate -fv /etc/logrotate.d/docker
+```

@@ -10,23 +10,23 @@ services:
     ports:
       - "8000:8000"    
     volumes:
-      - .:/srv/celery
-      - ./log:/var/log/celery
+      - .:/srv/plugin
+      - ./log:/var/log
     command: 
-      gunicorn --workers=2 --bind 0.0.0.0:8000 docker.wsgi:application
+      gunicorn --workers=3 --bind 0.0.0.0:8000 API.wsgi:application
       
     expose: 
       - "8000"
 
   nginx:
     container_name: nginx
+    hostname: nginx
     build: 
       context: ./nginx
       dockerfile: Dockerfile 
     restart: always
     volumes:
-      - .:/srv/celery
-      - ./nginx:/etc/nginx/conf.d
+      - .:/srv/plugin
     ports:
       - "80:80"
     depends_on:
@@ -34,6 +34,7 @@ services:
 
 
   rabbit:
+    container_name: rabbit
     hostname: rabbit
     image: rabbitmq:latest
     environment:
@@ -43,23 +44,30 @@ services:
       - "5672:5672"
 
   worker:
+    container_name: celery
+    hostname: celery
     build: .
     volumes:
-      - .:/srv/celery
+      - .:/srv/plugin
     environment:
       - C_FORCE_ROOT=true
     command: 
-      celery -A docker worker -l info
+      celery -A API worker -l info
     links:
       - rabbit
+      - celery-beat
     depends_on:
       - rabbit
   
   celery-beat:
+    container_name: celery-beat
+    hostname: beat
+    environment:
+      - C_FORCE_ROOT=true
     build: .
-    command: celery -A docker beat -l info
+    command: celery -A API beat -l debug --pidfile=./celerybeat.pid
     volumes:
-      - .:/srv/celery
+      - .:/srv/plugin
     links:
       - rabbit
     depends_on:
